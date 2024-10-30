@@ -7,7 +7,9 @@ produto_bp = Blueprint('produtos', __name__)
 def criar_produto():
 
     produto = request.json
-    novo_produto = Produto(produto_nome=produto['produto_nome'], produto_preco=produto['produto_preco'])
+
+    novo_produto = Produto(produto_nome=produto.get('produto_nome'), produto_preco=produto.get('produto_preco'))
+    
     db.session.add(novo_produto)
     db.session.commit()
 
@@ -17,31 +19,33 @@ def criar_produto():
 def listar_produtos():
 
     produtos = Produto.query.all()  
-    produtos_lista = [{'id': p.produto_id, 'produto_nome': p.produto_nome, 'produto_preco': p.produto_preco} for p in produtos]
-
-    return jsonify(produtos_lista), 200
+    return jsonify([{'id': p.produto_id, 'produto_nome': p.produto_nome, 'produto_preco': p.produto_preco} for p in produtos]), 200
 
 @produto_bp.route('/produtos/<int:id>', methods=['PUT'])
 def atualizar_produto(id):
-    dados = request.json
+
     produto = Produto.query.get(id)
 
     if not produto:
         return jsonify({'Mensagem': 'Produto não encontrado'}), 404
 
-    produto.produto_nome = dados['produto_nome']
-    db.session.commit()
+    dados = request.json
+    if 'produto_nome' in dados:
+        produto.produto_nome = dados['produto_nome']
+    if 'produto_preco' in dados:
+        produto.produto_preco = dados['produto_preco']
 
-    return jsonify({'Produto alterado': produto.produto_nome})
+    db.session.commit()
+    return jsonify({'Produto alterado': produto.produto_nome}), 200
 
 @produto_bp.route('/produtos/<int:id>', methods=['DELETE'])
 def excluir_produto(id):
+    
     produto = Produto.query.get(id)
 
     if not produto:
-        return jsonify({'Mensagem': 'Produto não encontrado'})
+        return jsonify({'Mensagem': 'Produto não encontrado'}), 404
     
     db.session.delete(produto)
     db.session.commit()
-
-    return jsonify({'Produto excluido'}), 200
+    return jsonify({'Mensagem': 'Produto excluído'}), 200

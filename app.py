@@ -1,30 +1,23 @@
 from flask import Flask
+from flask_jwt_extended import JWTManager
 from models import db
-from config import Config
-from controllers.usuario_controller import usuario_bp
-from controllers.produto_controller import produto_bp  
-from controllers.cliente_controller import cliente_bp
-from controllers.pedido_controller import pedido_bp
-from controllers.detalhepedido_controller import detalhePedido_bp
+from controllers import cliente_bp, produto_bp, usuario_bp, pedido_bp, detalhePedido_bp
 
-def criar_app():
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+app.config['JWT_SECRET_KEY'] = 'gatopreto'  
 
-    app = Flask(__name__)
+jwt = JWTManager(app)
 
-    app.config.from_object(Config)
+db.init_app(app)
 
-    db.init_app(app)
+app.register_blueprint(cliente_bp, url_prefix='/clientes')
+app.register_blueprint(produto_bp, url_prefix='/produtos')
+app.register_blueprint(usuario_bp, url_prefix='/usuarios')
+app.register_blueprint(pedido_bp, url_prefix='/pedidos')
+app.register_blueprint(detalhePedido_bp, url_prefix='/detalhepedidos')
 
+if __name__ == '__main__':
     with app.app_context():
-        db.create_all()
-
-    app.register_blueprint(usuario_bp)
-    app.register_blueprint(produto_bp)
-    app.register_blueprint(cliente_bp)
-    app.register_blueprint(pedido_bp)
-    app.register_blueprint(detalhePedido_bp)
-
+        db.create_all()  
     app.run(debug=True)
-
-if __name__ == "__main__":
-    app = criar_app()

@@ -1,11 +1,33 @@
 from flask import Blueprint, request, jsonify
-from models import db, Cliente, Produto, Pedido, DetalhePedido
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from models import db, Cliente
 
 cliente_bp = Blueprint('clientes', __name__)
 
+users = {
+    "1": "1",
+    "2": "2"
+}
+
+@cliente_bp.route('/login', methods=['POST'])
+def login():
+    username = request.json.get('usuario')
+    password = request.json.get('senha')
+
+    if username not in users or users[username] != password:
+        return jsonify({"msg": "Usuário ou senha incorretos"}), 401
+        
+    access_token = create_access_token(identity=username)
+    return jsonify(access_token=access_token), 200
+
+@cliente_bp.route('/protected', methods=['GET'])
+@jwt_required()
+def protected():
+    current_user = get_jwt_identity()
+    return jsonify(logged_in_as=current_user), 200
+
 @cliente_bp.route('/clientes', methods=['POST'])
 def criar_cliente():
-
     cliente = request.json
     novo_cliente = Cliente(cliente_nome=cliente['cliente_nome'], cliente_email=cliente['cliente_email'])
 
@@ -16,26 +38,7 @@ def criar_cliente():
 
 @cliente_bp.route('/clientes', methods=['GET'])
 def listar_cliente():
-
-    cliente = Cliente.query.all()
-    cliente_lista = [{'id': c.cliente_id, 'cliente_nome': c.cliente_nome, 'cliente_email': c.cliente_email } for c in cliente]
+    clientes = Cliente.query.all()
+    cliente_lista = [{'id': c.cliente_id, 'cliente_nome': c.cliente_nome, 'cliente_email': c.cliente_email} for c in clientes]
 
     return jsonify(cliente_lista), 200
-
-@cliente_bp.route('/clienteproduto', methods=['GET'])
-def gerar_relatorio():
-
-    relatorio = db.session.query(
-        Cliente.cliente_nome.label('cliente_nome'),
-        Produto.produto_nome.label('produto_nome')
-    ).join(
-        Pedido, Pedido.cliente_id == Cliente.cliente_id
-    ).join(
-        DetalhePedido, DetalhePedido.dp_pedido_id == Pedido.pedido_id
-    ).join(
-        Produto, Produto.produto_id == DetalhePedido.dp_produto_id
-    ).all()
-
-    pedido_lista = [{'produto_nome': c.produto_nome, 'cliente_nome': c.cliente_nome} for c in relatorio]
-
-    return jsonify(pedido_lista), 200
