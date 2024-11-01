@@ -2,14 +2,12 @@ from flask import Flask
 from flask_jwt_extended import JWTManager
 from models import db
 from controllers import cliente_bp, produto_bp, usuario_bp, pedido_bp, detalhePedido_bp, categoria_bp
-from flask_migrate import Migrate
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['JWT_SECRET_KEY'] = 'gatopreto'  
 
 jwt = JWTManager(app)
-migrate = Migrate(app, db)
 
 db.init_app(app)
 
