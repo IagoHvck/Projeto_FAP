@@ -11,6 +11,7 @@ users = {
 
 @usuario_bp.route('/login', methods=['POST'])
 def login():
+    
     username = request.json.get('usuario')
     password = request.json.get('senha')
 
@@ -23,6 +24,7 @@ def login():
 @usuario_bp.route('/protected', methods=['GET'])
 @jwt_required()
 def protected():
+    
     current_user = get_jwt_identity()
     return jsonify(logged_in_as=current_user), 200
 
@@ -44,7 +46,10 @@ def criar_usuario():
 def listar_usuarios():
 
     usuarios = Usuario.query.all()
-    usuarios_lista = [{'id': u.usuario_id, 'usuario_login': u.usuario_login} for u in usuarios]
+    usuarios_lista = [{
+        'id': u.usuario_id, 
+        'usuario_login': u.usuario_login
+        } for u in usuarios]
 
     return jsonify(usuarios_lista), 200
 

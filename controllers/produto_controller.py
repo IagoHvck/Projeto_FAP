@@ -8,18 +8,29 @@ def criar_produto():
 
     produto = request.json
 
-    novo_produto = Produto(produto_nome=produto.get('produto_nome'), produto_preco=produto.get('produto_preco'))
+    novo_produto = Produto(
+        produto_nome=produto.get('produto_nome'),
+        produto_preco=produto.get('produto_preco')
+        )
     
     db.session.add(novo_produto)
     db.session.commit()
 
-    return jsonify({'id': novo_produto.produto_id, 'produto_nome': novo_produto.produto_nome, 'produto_preco': novo_produto.produto_preco}), 201
+    return jsonify({
+        'id': novo_produto.produto_id, 
+        'produto_nome': novo_produto.produto_nome, 
+        'produto_preco': novo_produto.produto_preco
+        }), 201
 
 @produto_bp.route('/produtos', methods=['GET'])
 def listar_produtos():
 
     produtos = Produto.query.all()  
-    return jsonify([{'id': p.produto_id, 'produto_nome': p.produto_nome, 'produto_preco': p.produto_preco} for p in produtos]), 200
+    return jsonify([{
+        'id': p.produto_id, 
+        'produto_nome': p.produto_nome, 
+        'produto_preco': p.produto_preco
+        } for p in produtos]), 200
 
 @produto_bp.route('/produtos/<int:id>', methods=['PUT'])
 def atualizar_produto(id):
